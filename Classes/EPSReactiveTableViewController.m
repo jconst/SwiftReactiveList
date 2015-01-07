@@ -70,6 +70,10 @@
     [self.changeObserver setBindingToKeyPath:keyPath onObject:object];
 }
 
+- (void)setBindingToSignal:(RACSignal *)signal {
+    [self.changeObserver setBindingToSignal:signal];
+}
+
 - (void)registerCellClass:(Class)cellClass forObjectsWithClass:(Class)objectClass {
     NSString *identifier = [EPSReactiveTableViewController identifierFromCellClass:cellClass objectClass:objectClass];
     [self.tableView registerClass:cellClass forCellReuseIdentifier:identifier];

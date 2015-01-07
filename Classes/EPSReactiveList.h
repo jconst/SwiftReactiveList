@@ -23,6 +23,8 @@
  */
 - (void)setBindingToKeyPath:(NSString *)keyPath onObject:(id)object;
 
+- (void)setBindingToSignal:(RACSignal *)signal;
+
 /**
  @param object An object in the observed array.
  */

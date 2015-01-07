@@ -64,6 +64,10 @@
     [self.changeObserver setBindingToKeyPath:keyPath onObject:object];
 }
 
+- (void)setBindingToSignal:(RACSignal *)signal {
+    [self.changeObserver setBindingToSignal:signal];
+}
+
 - (void)registerCellClass:(Class)cellClass forObjectsWithClass:(Class)objectClass {
     NSString *identifier = [EPSReactiveCollectionViewController identifierFromCellClass:cellClass objectClass:objectClass];
     [self.collectionView registerClass:cellClass forCellWithReuseIdentifier:identifier];

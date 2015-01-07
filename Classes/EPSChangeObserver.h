@@ -16,5 +16,6 @@
 @property (readonly, nonatomic) RACSignal *changeSignal;
 
 - (void)setBindingToKeyPath:(NSString *)keyPath onObject:(id)object;
+- (void)setBindingToSignal:(RACSignal *)signal;
 
 @end

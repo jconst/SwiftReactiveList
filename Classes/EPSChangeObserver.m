@@ -13,9 +13,7 @@
 
 @interface EPSChangeObserver ()
 
-@property (nonatomic) NSArray *objects;
-@property (nonatomic) id object;
-@property (nonatomic) NSString *keyPath;
+@property (nonatomic, strong) RACSignal *objectsSignal;
 
 @end
 
@@ -25,25 +23,15 @@
     self = [super init];
     if (self == nil) return nil;
     
-    RAC(self, objects) = [[RACSignal
-        zip:@[ [RACObserve(self, object) skip:1], [RACObserve(self, keyPath) skip:1] ]
-        reduce:^RACSignal *(id object, NSString *keyPath){
-            return [object rac_valuesForKeyPath:keyPath observer:self];
-        }]
-        switchToLatest];
+    RAC(self, objects) = [RACObserve(self, objectsSignal) switchToLatest];
     
-    _changeSignal = [[self rac_valuesAndChangesForKeyPath:@"objects" options:NSKeyValueObservingOptionOld observer:nil]
-        map:^RACTuple *(RACTuple *tuple) {
-            RACTupleUnpack(NSArray *newObjects, NSDictionary *changeDictionary) = tuple;
-            id oldObjects = changeDictionary[NSKeyValueChangeOldKey];
-            
-            NSArray *oldObjectsArray;
-            if (oldObjects == [NSNull null]) oldObjectsArray = @[];
-            else oldObjectsArray = oldObjects;
+    _changeSignal = [RACObserve(self, objects)
+        combinePreviousWithStart:@[]
+        reduce:^RACTuple *(NSArray *oldObjects, NSArray *newObjects) {
+            if (!oldObjects) oldObjects = @[];
             
             NSArray *rowsToRemove;
-            
-            rowsToRemove = [[[oldObjectsArray.rac_sequence
+            rowsToRemove = [[[oldObjects.rac_sequence
                 filter:^BOOL(id object) {
                     return [newObjects containsObject:object] == NO;
                 }]
@@ -54,7 +42,7 @@
             
             NSArray *rowsToInsert = [[[newObjects.rac_sequence
                 filter:^BOOL(id object) {
-                    return ([oldObjectsArray containsObject:object] == NO);
+                    return ([oldObjects containsObject:object] == NO);
                 }]
                 map:^NSIndexPath *(id object) {
                     return [NSIndexPath indexPathForRow:[newObjects indexOfObject:object] inSection:0];
@@ -68,8 +56,11 @@
 }
 
 - (void)setBindingToKeyPath:(NSString *)keyPath onObject:(id)object {
-    self.object = object;
-    self.keyPath = keyPath;
+    self.objectsSignal = [object rac_valuesForKeyPath:keyPath observer:self];
+}
+
+- (void)setBindingToSignal:(RACSignal *)signal {
+    self.objectsSignal = signal;
 }
 
 @end
