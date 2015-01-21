@@ -30,7 +30,7 @@
     _viewModel = [EPSExampleViewModel new];
     [self setBindingToKeyPath:@"sortedNotes" onObject:_viewModel];
     
-    [self registerCellClass:[EPSNoteCell class] forObjectsWithClass:[EPSNote class]];
+//    [self registerCellClass:[EPSNoteCell class] forObjectsWithClass:[EPSNote class]];
     
     self.navigationItem.leftBarButtonItem = self.editButtonItem;
     self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAdd target:self action:@selector(addObject:)];

@@ -27,6 +27,8 @@
 
 @synthesize animateChanges = _animateChanges;
 
+static NSString * const defaultCellIdentifier = @"EPSReactiveTableViewController-DefaultCellIdentifier";
+
 #pragma mark - Public Methods
 
 - (id)initWithStyle:(UITableViewStyle)style {
@@ -62,6 +64,8 @@
             id object = [EPSReactiveTableViewController objectForIndexPath:indexPath inArray:objects];
             return RACTuplePack(object, indexPath, tableView);
         }];
+    
+    [self.tableView registerClass:[UITableViewCell class] forCellReuseIdentifier:defaultCellIdentifier];
     
     return self;
 }
@@ -173,8 +177,10 @@
 #pragma mark - For Subclasses
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForObject:(id)object atIndexPath:(NSIndexPath *)indexPath {
-    NSLog(@"EPSReactiveTableViewController Error: -tableView:cellForObject:atIndexPath: must be overridden by a subclass.");
-    return nil;
+    
+    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:defaultCellIdentifier];
+    cell.textLabel.text = [object description];
+    return cell;
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowForObject:(id)object atIndexPath:(NSIndexPath *)indexPath {

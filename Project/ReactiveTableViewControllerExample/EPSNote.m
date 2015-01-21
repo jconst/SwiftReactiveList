@@ -10,4 +10,9 @@
 
 @implementation EPSNote
 
+- (NSString *)description
+{
+    return self.text;
+}
+
 @end
