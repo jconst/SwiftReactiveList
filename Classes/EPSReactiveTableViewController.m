@@ -31,10 +31,18 @@ static NSString * const defaultCellIdentifier = @"EPSReactiveTableViewController
 
 #pragma mark - Public Methods
 
-- (id)initWithStyle:(UITableViewStyle)style {
-    self = [super initWithStyle:style];
-    if (self == nil) return nil;
-    
+- (id)initWithCoder:(NSCoder *)aDecoder {
+    if (!(self = [super initWithCoder:aDecoder])) return nil;
+    return [self commonInit];
+}
+
+- (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil {
+    if (!(self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil])) return nil;
+    return [self commonInit];
+}
+
+- (id)commonInit
+{
     _animateChanges = YES;
     _insertAnimation = UITableViewRowAnimationAutomatic;
     _deleteAnimation = UITableViewRowAnimationAutomatic;
@@ -45,25 +53,25 @@ static NSString * const defaultCellIdentifier = @"EPSReactiveTableViewController
     RACSignal *objectsWhenSelected = [RACObserve(self.changeObserver, objects) sample:didSelectMethodSignal];
     
     self.didSelectRowSignal = [[didSelectMethodSignal
-        zipWith:objectsWhenSelected]
-        map:^RACTuple *(RACTuple *tuple) {
-            RACTupleUnpack(RACTuple *arguments, NSArray *objects) = tuple;
-            RACTupleUnpack(UITableView *tableView, NSIndexPath *indexPath) = arguments;
-            id object = [EPSReactiveTableViewController objectForIndexPath:indexPath inArray:objects];
-            return RACTuplePack(object, indexPath, tableView);
-        }];
+                                zipWith:objectsWhenSelected]
+                               map:^RACTuple *(RACTuple *tuple) {
+                                   RACTupleUnpack(RACTuple *arguments, NSArray *objects) = tuple;
+                                   RACTupleUnpack(UITableView *tableView, NSIndexPath *indexPath) = arguments;
+                                   id object = [EPSReactiveTableViewController objectForIndexPath:indexPath inArray:objects];
+                                   return RACTuplePack(object, indexPath, tableView);
+                               }];
     
     RACSignal *accessoryTappedSignal = [self rac_signalForSelector:@selector(tableView:accessoryButtonTappedForRowWithIndexPath:)];
     RACSignal *objectsWhenAccessoryTapped = [RACObserve(self.changeObserver, objects) sample:accessoryTappedSignal];
-
+    
     self.accessoryButtonTappedSignal = [[accessoryTappedSignal
-        zipWith:objectsWhenAccessoryTapped]
-        map:^RACTuple *(RACTuple *tuple) {
-            RACTupleUnpack(RACTuple *arguments, NSArray *objects) = tuple;
-            RACTupleUnpack(UITableView *tableView, NSIndexPath *indexPath) = arguments;
-            id object = [EPSReactiveTableViewController objectForIndexPath:indexPath inArray:objects];
-            return RACTuplePack(object, indexPath, tableView);
-        }];
+                                         zipWith:objectsWhenAccessoryTapped]
+                                        map:^RACTuple *(RACTuple *tuple) {
+                                            RACTupleUnpack(RACTuple *arguments, NSArray *objects) = tuple;
+                                            RACTupleUnpack(UITableView *tableView, NSIndexPath *indexPath) = arguments;
+                                            id object = [EPSReactiveTableViewController objectForIndexPath:indexPath inArray:objects];
+                                            return RACTuplePack(object, indexPath, tableView);
+                                        }];
     
     [self.tableView registerClass:[UITableViewCell class] forCellReuseIdentifier:defaultCellIdentifier];
     
