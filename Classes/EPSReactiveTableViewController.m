@@ -72,9 +72,6 @@ static NSString * const defaultCellIdentifier = @"EPSReactiveTableViewController
                                             id object = [EPSReactiveTableViewController objectForIndexPath:indexPath inArray:objects];
                                             return RACTuplePack(object, indexPath, tableView);
                                         }];
-    
-    [self.tableView registerClass:[UITableViewCell class] forCellReuseIdentifier:defaultCellIdentifier];
-    
     return self;
 }
 
@@ -133,6 +130,8 @@ static NSString * const defaultCellIdentifier = @"EPSReactiveTableViewController
                 [self.tableView reloadData];
             }
         }];
+    
+    [self.tableView registerClass:[UITableViewCell class] forCellReuseIdentifier:defaultCellIdentifier];
 }
 
 + (NSString *)identifierFromCellClass:(Class)cellClass objectClass:(Class)objectClass {
