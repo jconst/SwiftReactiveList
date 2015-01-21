@@ -50,6 +50,16 @@
  */
 - (void)tableView:(UITableView *)tableView accessoryButtonTappedForObject:(id)object atIndexPath:(NSIndexPath *)indexPath;
 
+#pragma mark - Commands
+
+/**
+ Set this property to the command that should execute when a row is deleted.
+ The object for that row will be sent as input to the signal block.
+ If editing is enabled for your table view, then the execution of this command
+ MUST remove the object from your objects array (or signal of arrays).
+*/
+@property (readwrite, nonatomic, strong) RACCommand *deleteCommand;
+
 #pragma mark - Signals
 
 /**

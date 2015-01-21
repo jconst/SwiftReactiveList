@@ -30,8 +30,6 @@
     _viewModel = [EPSExampleViewModel new];
     [self setBindingToKeyPath:@"sortedNotes" onObject:_viewModel];
     
-//    [self registerCellClass:[EPSNoteCell class] forObjectsWithClass:[EPSNote class]];
-    
     self.navigationItem.leftBarButtonItem = self.editButtonItem;
     self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAdd target:self action:@selector(addObject:)];
     
@@ -46,6 +44,11 @@
             else return @NO;
         }];
     
+    self.deleteCommand = [[RACCommand alloc] initWithSignalBlock:^RACSignal *(EPSNote *note) {
+        [self.viewModel removeNote:note];
+        return [RACSignal empty];
+    }];
+    
     return self;
 }
 
@@ -54,11 +57,6 @@
     note.text = [NSString stringWithFormat:@"%lu", (unsigned long)self.viewModel.sortedNotes.count];
     
     [self.viewModel addNote:note];
-}
-
-- (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {
-    EPSNote *note = [self objectForIndexPath:indexPath];
-    [self.viewModel removeNote:note];
 }
 
 #pragma mark - EPSReactiveTableViewControllerDelegate Methods

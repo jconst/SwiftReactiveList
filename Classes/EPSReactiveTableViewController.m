@@ -181,6 +181,13 @@ static NSString * const defaultCellIdentifier = @"EPSReactiveTableViewController
     [self tableView:tableView accessoryButtonTappedForObject:[self objectForIndexPath:indexPath] atIndexPath:indexPath];
 }
 
+- (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    if (editingStyle == UITableViewCellEditingStyleDelete) {
+        [self.deleteCommand execute:[self objectForIndexPath:indexPath]];
+    }
+}
+
 #pragma mark - For Subclasses
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForObject:(id)object atIndexPath:(NSIndexPath *)indexPath {
