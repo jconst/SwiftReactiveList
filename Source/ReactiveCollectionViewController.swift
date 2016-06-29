@@ -3,10 +3,10 @@
 import ReactiveCocoa
 import enum Result.NoError
 
-class ReactiveCollectionViewController<Cell: EPSReactiveListCell>
-    : UICollectionViewController, EPSReactiveList {
+public class ReactiveCollectionViewController<Cell: ReactiveListCell>
+    : UICollectionViewController, ReactiveList {
 
-  typealias Element = Cell.Item
+  public typealias Element = Cell.Item
 
   public var didSelectItemSignal: Signal<(Element, NSIndexPath), Result.NoError>
   public var animateChanges: Bool
@@ -21,19 +21,19 @@ class ReactiveCollectionViewController<Cell: EPSReactiveListCell>
     super.init(collectionViewLayout: layout)
   }
 
-  func setBindingToSignal(signal: Signal<[Element], Result.NoError>) {
+  public func setBindingToSignal(signal: Signal<[Element], Result.NoError>) {
     changeObserver.setBindingToSignal(signal)
   }
 
-  func indexPathForObject(object: Element) -> NSIndexPath {
+  public func indexPathForObject(object: Element) -> NSIndexPath {
     return NSIndexPath(forRow: changeObserver.objects.value.indexOf(object)!, inSection: 0)
   }
 
-  func objectForIndexPath(indexPath: NSIndexPath) -> Element {
+  public func objectForIndexPath(indexPath: NSIndexPath) -> Element {
     return changeObserver.objects.value[indexPath.row]
   }
 
-  override func viewDidLoad() {
+  override public func viewDidLoad() {
     super.viewDidLoad()
     self.changeObserver.changeSignal.observeNext { [unowned self](rowsToRemove, rowsToInsert) in
       var onlyOrderChanged = (rowsToRemove.count == 0) && (rowsToInsert.count == 0)
@@ -49,27 +49,27 @@ class ReactiveCollectionViewController<Cell: EPSReactiveListCell>
     }
   }
 
-  override func numberOfSectionsInCollectionView(collectionView: UICollectionView) -> Int {
+  override public func numberOfSectionsInCollectionView(collectionView: UICollectionView) -> Int {
     return 1
   }
 
-  override func collectionView(collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+  override public func collectionView(collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
     return changeObserver.objects.value.count
   }
 
-  override func collectionView(collectionView: UICollectionView, cellForItemAtIndexPath indexPath: NSIndexPath)
+  override public func collectionView(collectionView: UICollectionView, cellForItemAtIndexPath indexPath: NSIndexPath)
       -> UICollectionViewCell {
     var object = objectForIndexPath(indexPath)
     var cell = collectionView.dequeueReusableCellWithReuseIdentifier("Cell", forIndexPath: indexPath)
     guard var rxCell = cell as? Cell else {
-      print("Error: cell type does not conform to EPSReactiveListCell")
+      print("Error: cell type does not conform to ReactiveListCell")
       return cell
     }
     rxCell.object = object
     return rxCell as! UICollectionViewCell
   }
 
-  override func collectionView(collectionView: UICollectionView, didSelectItemAtIndexPath indexPath: NSIndexPath) {
+  override public func collectionView(collectionView: UICollectionView, didSelectItemAtIndexPath indexPath: NSIndexPath) {
     didSelectItemPipe.sendNext((objectForIndexPath(indexPath), indexPath))
   }
 }

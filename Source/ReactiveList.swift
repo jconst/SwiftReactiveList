@@ -3,12 +3,12 @@
 import ReactiveCocoa
 import enum Result.NoError
 
-public protocol EPSReactiveListCell {
+public protocol ReactiveListCell {
   associatedtype Item: Equatable
   var object: Item { get set }
 }
 
-public protocol EPSReactiveList {
+public protocol ReactiveList {
   associatedtype Element: Equatable
 
   /// When a new array is sent on the signal, the array is diffed with the previous

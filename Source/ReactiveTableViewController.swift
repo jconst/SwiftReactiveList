@@ -3,10 +3,10 @@
 import ReactiveCocoa
 import enum Result.NoError
 
-class ReactiveTableViewController<Cell: EPSReactiveListCell>
-    : UITableViewController, EPSReactiveList {
+public class ReactiveTableViewController<Cell: ReactiveListCell>
+    : UITableViewController, ReactiveList {
 
-  typealias Element = Cell.Item
+  public typealias Element = Cell.Item
 
   public var didSelectItemSignal: Signal<(Element, NSIndexPath), Result.NoError>
   public var didTapAccessorySignal: Signal<(Element, NSIndexPath), Result.NoError>
@@ -21,7 +21,7 @@ class ReactiveTableViewController<Cell: EPSReactiveListCell>
   private var didTapAccessoryPipe: Observer<(Element, NSIndexPath), Result.NoError>
   private var didDeleteItemPipe: Observer<(Element, NSIndexPath), Result.NoError>
 
-  required init?(coder aDecoder: NSCoder) {
+  required public init?(coder aDecoder: NSCoder) {
     animateChanges = true
     changeObserver = ChangeObserver()
     (didSelectItemSignal, didSelectItemPipe) = Signal.pipe()
@@ -30,19 +30,19 @@ class ReactiveTableViewController<Cell: EPSReactiveListCell>
     super.init(coder: aDecoder)
   }
 
-  func setBindingToSignal(signal: Signal<[Element], Result.NoError>) {
+  public func setBindingToSignal(signal: Signal<[Element], Result.NoError>) {
     changeObserver.setBindingToSignal(signal)
   }
 
-  func indexPathForObject(object: Element) -> NSIndexPath {
+  public func indexPathForObject(object: Element) -> NSIndexPath {
     return NSIndexPath(forRow: changeObserver.objects.value.indexOf(object)!, inSection: 0)
   }
 
-  func objectForIndexPath(indexPath: NSIndexPath) -> Element {
+  public func objectForIndexPath(indexPath: NSIndexPath) -> Element {
     return changeObserver.objects.value[indexPath.row]
   }
 
-  override func viewDidLoad() {
+  override public func viewDidLoad() {
     super.viewDidLoad()
     self.changeObserver.changeSignal.observeNext { [unowned self](rowsToRemove, rowsToInsert) in
       var onlyOrderChanged = (rowsToRemove.count == 0) && (rowsToInsert.count == 0)
@@ -58,34 +58,34 @@ class ReactiveTableViewController<Cell: EPSReactiveListCell>
     }
   }
 
-  override func numberOfSectionsInTableView(tableView: UITableView) -> Int {
+  override public func numberOfSectionsInTableView(tableView: UITableView) -> Int {
     return 1
   }
 
-  override func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+  override public func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
     return changeObserver.objects.value.count
   }
 
-  override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
+  override public func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
     var object = objectForIndexPath(indexPath)
     var cell = tableView.dequeueReusableCellWithIdentifier("Cell", forIndexPath: indexPath)
     guard var rxCell = cell as? Cell else {
-      print("Error: cell type does not conform to EPSReactiveListCell")
+      print("Error: cell type does not conform to ReactiveListCell")
       return cell
     }
     rxCell.object = object
     return rxCell as! UITableViewCell
   }
 
-  override func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
+  override public func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
     didSelectItemPipe.sendNext((objectForIndexPath(indexPath), indexPath))
   }
 
-  override func tableView(tableView: UITableView, accessoryButtonTappedForRowWithIndexPath indexPath: NSIndexPath) {
+  override public func tableView(tableView: UITableView, accessoryButtonTappedForRowWithIndexPath indexPath: NSIndexPath) {
     didTapAccessoryPipe.sendNext((objectForIndexPath(indexPath), indexPath))
   }
 
-  override func tableView(tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle,
+  override public func tableView(tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle,
       forRowAtIndexPath indexPath: NSIndexPath) {
     if (editingStyle == .Delete) {
       didDeleteItemPipe.sendNext((objectForIndexPath(indexPath), indexPath))
