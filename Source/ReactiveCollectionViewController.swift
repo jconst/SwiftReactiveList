@@ -1,17 +1,18 @@
 //  Created by Joseph Constantakis on 6/27/16.
 
 import ReactiveCocoa
+import enum Result.NoError
 
 class ReactiveCollectionViewController<Cell: EPSReactiveListCell>
     : UICollectionViewController, EPSReactiveList {
 
   typealias Element = Cell.Item
 
-  public var didSelectItemSignal: Signal<(Element, NSIndexPath), NoError>
+  public var didSelectItemSignal: Signal<(Element, NSIndexPath), Result.NoError>
   public var animateChanges: Bool
 
   private var changeObserver: ChangeObserver<Element>
-  private var didSelectItemPipe: Observer<(Element, NSIndexPath), NoError>
+  private var didSelectItemPipe: Observer<(Element, NSIndexPath), Result.NoError>
 
   override init(collectionViewLayout layout: UICollectionViewLayout) {
     animateChanges = true
@@ -20,7 +21,7 @@ class ReactiveCollectionViewController<Cell: EPSReactiveListCell>
     super.init(collectionViewLayout: layout)
   }
 
-  func setBindingToSignal(signal: Signal<[Element], NoError>) {
+  func setBindingToSignal(signal: Signal<[Element], Result.NoError>) {
     changeObserver.setBindingToSignal(signal)
   }
 

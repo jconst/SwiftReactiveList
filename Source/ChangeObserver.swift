@@ -8,11 +8,11 @@ typealias NoError = Result.NoError
 class ChangeObserver<T: Equatable> {
   var objects = MutableProperty([T]())
 
-  var changeSignal: Signal<([NSIndexPath], [NSIndexPath]), NoError>
+  var changeSignal: Signal<([NSIndexPath], [NSIndexPath]), Result.NoError>
 
   var objectsSignal: MutableProperty<Signal<[T], NoError>> = MutableProperty(Signal.never)
 
-  public func setBindingToSignal(signal: Signal<[T], NoError>) {
+  public func setBindingToSignal(signal: Signal<[T], Result.NoError>) {
     objectsSignal.value = signal
   }
 

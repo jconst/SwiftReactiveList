@@ -1,24 +1,25 @@
 //  Created by Joseph Constantakis on 6/28/16.
 
 import ReactiveCocoa
+import enum Result.NoError
 
 class ReactiveTableViewController<Cell: EPSReactiveListCell>
     : UITableViewController, EPSReactiveList {
 
   typealias Element = Cell.Item
 
-  public var didSelectItemSignal: Signal<(Element, NSIndexPath), NoError>
-  public var didTapAccessorySignal: Signal<(Element, NSIndexPath), NoError>
-  public var didDeleteItemSignal: Signal<(Element, NSIndexPath), NoError>
+  public var didSelectItemSignal: Signal<(Element, NSIndexPath), Result.NoError>
+  public var didTapAccessorySignal: Signal<(Element, NSIndexPath), Result.NoError>
+  public var didDeleteItemSignal: Signal<(Element, NSIndexPath), Result.NoError>
   public var animateChanges: Bool
 
   public var insertAnimation: UITableViewRowAnimation = .Automatic
   public var deleteAnimation: UITableViewRowAnimation = .Automatic
 
   private var changeObserver: ChangeObserver<Element>
-  private var didSelectItemPipe: Observer<(Element, NSIndexPath), NoError>
-  private var didTapAccessoryPipe: Observer<(Element, NSIndexPath), NoError>
-  private var didDeleteItemPipe: Observer<(Element, NSIndexPath), NoError>
+  private var didSelectItemPipe: Observer<(Element, NSIndexPath), Result.NoError>
+  private var didTapAccessoryPipe: Observer<(Element, NSIndexPath), Result.NoError>
+  private var didDeleteItemPipe: Observer<(Element, NSIndexPath), Result.NoError>
 
   required init?(coder aDecoder: NSCoder) {
     animateChanges = true
@@ -29,7 +30,7 @@ class ReactiveTableViewController<Cell: EPSReactiveListCell>
     super.init(coder: aDecoder)
   }
 
-  func setBindingToSignal(signal: Signal<[Element], NoError>) {
+  func setBindingToSignal(signal: Signal<[Element], Result.NoError>) {
     changeObserver.setBindingToSignal(signal)
   }
 
