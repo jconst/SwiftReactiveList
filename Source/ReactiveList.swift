@@ -5,16 +5,17 @@ import enum Result.NoError
 
 public protocol ReactiveListCell {
   associatedtype Item: Equatable
-  var object: Item { get set }
+  var object: Item? { get set }
 }
 
 public protocol ReactiveList {
-  associatedtype Element: Equatable
+  associatedtype ListCell: ReactiveListCell
+  typealias Element = ListCell.Item
 
   /// When a new array is sent on the signal, the array is diffed with the previous
   /// array of elements, and the differences will be applied to the list, using insertion
   /// and deletion animations if desired.
-  func setBindingToSignal(signal: Signal<[Element], Result.NoError>)
+  func bindToProducer(producer: SignalProducer<[Element], Result.NoError>)
 
   /// Whether insertions and deletions to the table/collection are animated
   /// default is true
@@ -22,4 +23,7 @@ public protocol ReactiveList {
 
   func indexPathForObject(object: Element) -> NSIndexPath
   func objectForIndexPath(indexPath: NSIndexPath) -> Element
+
+  // Can be overridden by subclass. Called after setting cell.object to the new object.
+  func prepareCell(cell: ListCell, indexPath: NSIndexPath)
 }

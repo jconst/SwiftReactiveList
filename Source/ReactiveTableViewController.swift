@@ -3,35 +3,54 @@
 import ReactiveCocoa
 import enum Result.NoError
 
-public class ReactiveTableViewController<Cell: ReactiveListCell>
+public enum TableInit {
+  case Coder(coder: NSCoder)
+  case Style(style: UITableViewStyle)
+}
+
+public class ReactiveTableViewController<Cell where Cell:UITableViewCell, Cell:ReactiveListCell>
     : UITableViewController, ReactiveList {
 
+  public typealias ListCell = Cell
   public typealias Element = Cell.Item
 
-  public var didSelectItemSignal: Signal<(Element, NSIndexPath), Result.NoError>
-  public var didTapAccessorySignal: Signal<(Element, NSIndexPath), Result.NoError>
-  public var didDeleteItemSignal: Signal<(Element, NSIndexPath), Result.NoError>
-  public var animateChanges: Bool
-
+  public var animateChanges = true
   public var insertAnimation: UITableViewRowAnimation = .Automatic
   public var deleteAnimation: UITableViewRowAnimation = .Automatic
 
-  private var changeObserver: ChangeObserver<Element>
-  private var didSelectItemPipe: Observer<(Element, NSIndexPath), Result.NoError>
-  private var didTapAccessoryPipe: Observer<(Element, NSIndexPath), Result.NoError>
-  private var didDeleteItemPipe: Observer<(Element, NSIndexPath), Result.NoError>
+  public let didSelectItemSignal: Signal<(Element, NSIndexPath), Result.NoError>
+  public let didTapAccessorySignal: Signal<(Element, NSIndexPath), Result.NoError>
+  public let didDeleteItemSignal: Signal<(Element, NSIndexPath), Result.NoError>
 
-  required public init?(coder aDecoder: NSCoder) {
-    animateChanges = true
-    changeObserver = ChangeObserver()
+  private let changeObserver = ChangeObserver<Element>()
+  private let didSelectItemPipe: Observer<(Element, NSIndexPath), Result.NoError>
+  private let didTapAccessoryPipe: Observer<(Element, NSIndexPath), Result.NoError>
+  private let didDeleteItemPipe: Observer<(Element, NSIndexPath), Result.NoError>
+
+  public required convenience init?(coder aDecoder: NSCoder) {
+    self.init(.Coder(coder: aDecoder))
+  }
+
+  public override convenience init(style: UITableViewStyle) {
+    self.init(.Style(style: style))
+  }
+
+  // Don't use this, use one of the above convenience inits
+  public required init(_ method: TableInit) {
     (didSelectItemSignal, didSelectItemPipe) = Signal.pipe()
     (didTapAccessorySignal, didTapAccessoryPipe) = Signal.pipe()
     (didDeleteItemSignal, didDeleteItemPipe) = Signal.pipe()
-    super.init(coder: aDecoder)
+    switch method {
+      case .Coder(let coder):
+        super.init(coder: coder)!
+      case .Style(let style):
+        super.init(style: style)
+    }
+    tableView!.registerClass(Cell.self, forCellReuseIdentifier: "Cell")
   }
 
-  public func setBindingToSignal(signal: Signal<[Element], Result.NoError>) {
-    changeObserver.setBindingToSignal(signal)
+  public func bindToProducer(producer: SignalProducer<[Element], Result.NoError>) {
+    changeObserver.bindToProducer(producer)
   }
 
   public func indexPathForObject(object: Element) -> NSIndexPath {
@@ -44,7 +63,7 @@ public class ReactiveTableViewController<Cell: ReactiveListCell>
 
   override public func viewDidLoad() {
     super.viewDidLoad()
-    self.changeObserver.changeSignal.observeNext { [unowned self](rowsToRemove, rowsToInsert) in
+    self.changeObserver.changeSignal.observeNext{ [unowned self](rowsToRemove, rowsToInsert) in
       var onlyOrderChanged = (rowsToRemove.count == 0) && (rowsToInsert.count == 0)
       if self.animateChanges == true && onlyOrderChanged == false {
         self.tableView!.beginUpdates()
@@ -70,11 +89,12 @@ public class ReactiveTableViewController<Cell: ReactiveListCell>
     var object = objectForIndexPath(indexPath)
     var cell = tableView.dequeueReusableCellWithIdentifier("Cell", forIndexPath: indexPath)
     guard var rxCell = cell as? Cell else {
-      print("Error: cell type does not conform to ReactiveListCell")
+      fatalError("Dequeued reusable cell that could not be cast to the Cell associated type")
       return cell
     }
     rxCell.object = object
-    return rxCell as! UITableViewCell
+    prepareCell(rxCell, indexPath: indexPath)
+    return rxCell
   }
 
   override public func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
@@ -90,5 +110,9 @@ public class ReactiveTableViewController<Cell: ReactiveListCell>
     if (editingStyle == .Delete) {
       didDeleteItemPipe.sendNext((objectForIndexPath(indexPath), indexPath))
     }
+  }
+
+  public func prepareCell(cell: Cell, indexPath: NSIndexPath) {
+    // Default implementation is empty
   }
 }

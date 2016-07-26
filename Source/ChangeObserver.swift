@@ -6,14 +6,14 @@ import enum Result.NoError
 typealias NoError = Result.NoError
 
 class ChangeObserver<T: Equatable> {
-  var objects = MutableProperty([T]())
+  let objects = MutableProperty([T]())
 
-  var changeSignal: Signal<([NSIndexPath], [NSIndexPath]), Result.NoError>
+  let changeSignal: Signal<([NSIndexPath], [NSIndexPath]), Result.NoError>
 
-  var objectsSignal: MutableProperty<Signal<[T], NoError>> = MutableProperty(Signal.never)
+  let objectsSignal: MutableProperty<SignalProducer<[T], NoError>> = MutableProperty(SignalProducer.empty)
 
-  public func setBindingToSignal(signal: Signal<[T], Result.NoError>) {
-    objectsSignal.value = signal
+  public func bindToProducer(producer: SignalProducer<[T], Result.NoError>) {
+    objectsSignal.value = producer
   }
 
   init() {
