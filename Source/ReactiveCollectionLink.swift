@@ -1,0 +1,79 @@
+//  Created by Joseph Constantakis on 6/27/16.
+
+import ReactiveCocoa
+import enum Result.NoError
+
+public class ReactiveCollectionLink<Cell where Cell:UICollectionViewCell, Cell:ReactiveListCell>
+    : NSObject, UICollectionViewDataSource, UICollectionViewDelegate {
+
+  public typealias Element = Cell.Item
+  public typealias PrepareCellBlock = ((Cell, NSIndexPath) -> Void)
+
+  public var animateChanges = true
+  public let didSelectItemSignal: Signal<(Element, NSIndexPath), Result.NoError>
+
+  private var prepareCell: PrepareCellBlock?
+  private let changeObserver = ChangeObserver<Element>()
+  private let didSelectItemPipe: Observer<(Element, NSIndexPath), Result.NoError>
+
+  public init(collectionView: UICollectionView) {
+    (didSelectItemSignal, didSelectItemPipe) = Signal.pipe()
+    super.init()
+    collectionView.delegate = self
+    collectionView.dataSource = self
+    collectionView.registerClass(Cell.self, forCellWithReuseIdentifier: "Cell")
+    changeObserver.changeSignal.observeNext{ [unowned self] (rowsToRemove, rowsToInsert) in
+      var onlyOrderChanged = (rowsToRemove.count == 0) && (rowsToInsert.count == 0)
+      if self.animateChanges == true && onlyOrderChanged == false {
+        collectionView.performBatchUpdates({
+          collectionView.deleteItemsAtIndexPaths(rowsToRemove)
+          collectionView.insertItemsAtIndexPaths(rowsToInsert)
+        }, completion: nil)
+      }
+      else {
+        collectionView.reloadData()
+      }
+    }
+  }
+
+  public func bindToProducer(producer: SignalProducer<[Element], Result.NoError>) {
+    changeObserver.bindToProducer(producer)
+  }
+
+  public func onPrepareCell(block: PrepareCellBlock) {
+    prepareCell = block
+  }
+
+  public func indexPathForObject(object: Element) -> NSIndexPath {
+    return NSIndexPath(forRow: changeObserver.objects.value.indexOf(object)!, inSection: 0)
+  }
+
+  public func objectForIndexPath(indexPath: NSIndexPath) -> Element {
+    return changeObserver.objects.value[indexPath.row]
+  }
+
+  public func numberOfSectionsInCollectionView(collectionView: UICollectionView) -> Int {
+    return 1
+  }
+
+  public func collectionView(collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+    return changeObserver.objects.value.count
+  }
+
+  public func collectionView(collectionView: UICollectionView, cellForItemAtIndexPath indexPath: NSIndexPath)
+      -> UICollectionViewCell {
+    var object = objectForIndexPath(indexPath)
+    var cell = collectionView.dequeueReusableCellWithReuseIdentifier("Cell", forIndexPath: indexPath)
+    guard var rxCell = cell as? Cell else {
+      fatalError("Dequeued reusable cell that could not be cast to the Cell associated type")
+      return cell
+    }
+    rxCell.object = object
+    prepareCell?(rxCell, indexPath)
+    return rxCell
+  }
+
+  public func collectionView(collectionView: UICollectionView, didSelectItemAtIndexPath indexPath: NSIndexPath) {
+    didSelectItemPipe.sendNext((objectForIndexPath(indexPath), indexPath))
+  }
+}

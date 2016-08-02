@@ -14,7 +14,6 @@ Pod::Spec.new do |s|
 
   s.source_files = 'Source'
 
-  s.public_header_files = 'Source/*.h'
   s.framework = 'UIKit'
   s.dependency 'ReactiveCocoa', '>= 4.0'
 end
