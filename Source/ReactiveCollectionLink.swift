@@ -1,5 +1,6 @@
 //  Created by Joseph Constantakis on 6/27/16.
 
+import MultiDelegate
 import ReactiveCocoa
 import enum Result.NoError
 
@@ -19,8 +20,10 @@ public class ReactiveCollectionLink<Cell where Cell:UICollectionViewCell, Cell:R
   public init(collectionView: UICollectionView) {
     (didSelectItemSignal, didSelectItemPipe) = Signal.pipe()
     super.init()
+
     collectionView.delegate = self
     collectionView.dataSource = self
+
     collectionView.registerClass(Cell.self, forCellWithReuseIdentifier: "Cell")
     changeObserver.changeSignal.observeNext{ [unowned self] (rowsToRemove, rowsToInsert) in
       var onlyOrderChanged = (rowsToRemove.count == 0) && (rowsToInsert.count == 0)

@@ -1,5 +1,6 @@
 //  Created by Joseph Constantakis on 6/28/16.
 
+import MultiDelegate
 import ReactiveCocoa
 import enum Result.NoError
 
@@ -23,14 +24,25 @@ public class ReactiveTableLink<Cell where Cell:UITableViewCell, Cell:ReactiveLis
   private let didTapAccessoryPipe: Observer<(Element, NSIndexPath), Result.NoError>
   private let didDeleteItemPipe: Observer<(Element, NSIndexPath), Result.NoError>
 
-  // Don't use this, use one of the above convenience inits
+  public var dataSource: UITableViewDataSource? { didSet{
+    multiDelegate.addDelegate(dataSource)
+  }}
+  public var delegate: UITableViewDelegate? { didSet{
+    multiDelegate.addDelegate(delegate)
+  }}
+  private var multiDelegate: AIMultiDelegate {
+    return AIMultiDelegate(delegates: [self])
+  }
+
   public init(tableView: UITableView) {
     (didSelectItemSignal, didSelectItemPipe) = Signal.pipe()
     (didTapAccessorySignal, didTapAccessoryPipe) = Signal.pipe()
     (didDeleteItemSignal, didDeleteItemPipe) = Signal.pipe()
     super.init()
-    tableView.delegate = self
-    tableView.dataSource = self
+
+    tableView.setValue(multiDelegate, forKey: "delegate")
+    tableView.setValue(multiDelegate, forKey: "dataSource")
+
     tableView.registerClass(Cell.self, forCellReuseIdentifier: "Cell")
     self.changeObserver.changeSignal.observeNext{ [unowned self](rowsToRemove, rowsToInsert) in
       var onlyOrderChanged = (rowsToRemove.count == 0) && (rowsToInsert.count == 0)
