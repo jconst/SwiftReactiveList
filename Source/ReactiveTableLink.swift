@@ -13,21 +13,21 @@ public class ReactiveTableLink<Cell where Cell:UITableViewCell, Cell:ReactiveLis
   public var insertAnimation: UITableViewRowAnimation = .Automatic
   public var deleteAnimation: UITableViewRowAnimation = .Automatic
 
-  public let didSelectItemSignal: Signal<(Element, NSIndexPath), Result.NoError>
-  public let didTapAccessorySignal: Signal<(Element, NSIndexPath), Result.NoError>
-  public let didDeleteItemSignal: Signal<(Element, NSIndexPath), Result.NoError>
+  public let didSelectItem: Signal<(Element, NSIndexPath), Result.NoError>
+  public let didTapAccessory: Signal<(Element, NSIndexPath), Result.NoError>
+  public let didDeleteItem: Signal<(Element, NSIndexPath), Result.NoError>
 
   private let changeObserver = ChangeObserver<Element>()
   private var prepareCell: PrepareCellBlock?
-  private let didSelectItemPipe: Observer<(Element, NSIndexPath), Result.NoError>
-  private let didTapAccessoryPipe: Observer<(Element, NSIndexPath), Result.NoError>
-  private let didDeleteItemPipe: Observer<(Element, NSIndexPath), Result.NoError>
+  private let selectItem: Observer<(Element, NSIndexPath), Result.NoError>
+  private let tapAccessory: Observer<(Element, NSIndexPath), Result.NoError>
+  private let deleteItem: Observer<(Element, NSIndexPath), Result.NoError>
 
   // Don't use this, use one of the above convenience inits
   public init(tableView: UITableView) {
-    (didSelectItemSignal, didSelectItemPipe) = Signal.pipe()
-    (didTapAccessorySignal, didTapAccessoryPipe) = Signal.pipe()
-    (didDeleteItemSignal, didDeleteItemPipe) = Signal.pipe()
+    (didSelectItem, selectItem) = Signal.pipe()
+    (didTapAccessory, tapAccessory) = Signal.pipe()
+    (didDeleteItem, deleteItem) = Signal.pipe()
     super.init()
     tableView.delegate = self
     tableView.dataSource = self
@@ -83,17 +83,17 @@ public class ReactiveTableLink<Cell where Cell:UITableViewCell, Cell:ReactiveLis
   }
 
   public func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
-    didSelectItemPipe.sendNext((objectForIndexPath(indexPath), indexPath))
+    selectItem.sendNext((objectForIndexPath(indexPath), indexPath))
   }
 
   public func tableView(tableView: UITableView, accessoryButtonTappedForRowWithIndexPath indexPath: NSIndexPath) {
-    didTapAccessoryPipe.sendNext((objectForIndexPath(indexPath), indexPath))
+    tapAccessory.sendNext((objectForIndexPath(indexPath), indexPath))
   }
 
   public func tableView(tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle,
       forRowAtIndexPath indexPath: NSIndexPath) {
     if (editingStyle == .Delete) {
-      didDeleteItemPipe.sendNext((objectForIndexPath(indexPath), indexPath))
+      deleteItem.sendNext((objectForIndexPath(indexPath), indexPath))
     }
   }
 }

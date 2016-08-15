@@ -10,14 +10,17 @@ public class ReactiveCollectionLink<Cell where Cell:UICollectionViewCell, Cell:R
   public typealias PrepareCellBlock = ((Cell, NSIndexPath) -> Void)
 
   public var animateChanges = true
-  public let didSelectItemSignal: Signal<(Element, NSIndexPath), Result.NoError>
+  public let didSelectItem: Signal<(Element, NSIndexPath), Result.NoError>
+  public let didMoveItem: Signal<(NSIndexPath, NSIndexPath), Result.NoError>
 
   private var prepareCell: PrepareCellBlock?
   private let changeObserver = ChangeObserver<Element>()
-  private let didSelectItemPipe: Observer<(Element, NSIndexPath), Result.NoError>
+  private let selectItem: Observer<(Element, NSIndexPath), Result.NoError>
+  private let moveItem: Observer<(NSIndexPath, NSIndexPath), Result.NoError>
 
   public init(collectionView: UICollectionView) {
-    (didSelectItemSignal, didSelectItemPipe) = Signal.pipe()
+    (didSelectItem, selectItem) = Signal.pipe()
+    (didMoveItem, moveItem) = Signal.pipe()
     super.init()
     collectionView.delegate = self
     collectionView.dataSource = self
@@ -74,6 +77,12 @@ public class ReactiveCollectionLink<Cell where Cell:UICollectionViewCell, Cell:R
   }
 
   public func collectionView(collectionView: UICollectionView, didSelectItemAtIndexPath indexPath: NSIndexPath) {
-    didSelectItemPipe.sendNext((objectForIndexPath(indexPath), indexPath))
+    selectItem.sendNext((objectForIndexPath(indexPath), indexPath))
+  }
+
+  // MARK: Delegate pass-throughs
+  public func collectionView(collectionView: UICollectionView, moveItemAtIndexPath src: NSIndexPath,
+      toIndexPath dst: NSIndexPath) {
+    moveItem.sendNext((src, dst))
   }
 }
