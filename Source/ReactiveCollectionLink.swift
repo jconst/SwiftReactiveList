@@ -29,8 +29,8 @@ public class ReactiveCollectionLink<Cell where Cell:UICollectionViewCell, Cell:R
       var onlyOrderChanged = (rowsToRemove.count == 0) && (rowsToInsert.count == 0)
       if self.animateChanges == true && onlyOrderChanged == false {
         collectionView.performBatchUpdates({
-          collectionView.deleteItemsAtIndexPaths(rowsToRemove)
-          collectionView.insertItemsAtIndexPaths(rowsToInsert)
+          collectionView.deleteItemsAtIndexPaths(rowsToRemove.map(indexPathWithRow))
+          collectionView.insertItemsAtIndexPaths(rowsToInsert.map(indexPathWithRow))
         }, completion: nil)
       }
       else {

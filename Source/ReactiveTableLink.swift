@@ -36,8 +36,8 @@ public class ReactiveTableLink<Cell where Cell:UITableViewCell, Cell:ReactiveLis
       var onlyOrderChanged = (rowsToRemove.count == 0) && (rowsToInsert.count == 0)
       if self.animateChanges == true && onlyOrderChanged == false {
         tableView.beginUpdates()
-        tableView.deleteRowsAtIndexPaths(rowsToRemove, withRowAnimation: self.deleteAnimation)
-        tableView.insertRowsAtIndexPaths(rowsToInsert, withRowAnimation: self.insertAnimation)
+        tableView.deleteRowsAtIndexPaths(rowsToRemove.map(indexPathWithRow), withRowAnimation: self.deleteAnimation)
+        tableView.insertRowsAtIndexPaths(rowsToInsert.map(indexPathWithRow), withRowAnimation: self.insertAnimation)
         tableView.endUpdates()
       }
       else {

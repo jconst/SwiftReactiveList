@@ -5,12 +5,11 @@ import enum Result.NoError
 
 typealias NoError = Result.NoError
 
-class ChangeObserver<T: Equatable> {
-  let objects = MutableProperty([T]())
+public class ChangeObserver<T: Equatable> {
+  public let changeSignal: Signal<([Int], [Int]), Result.NoError>
+  public let objects = MutableProperty([T]())
 
-  let changeSignal: Signal<([NSIndexPath], [NSIndexPath]), Result.NoError>
-
-  let objectsSignal: MutableProperty<SignalProducer<[T], NoError>> = MutableProperty(SignalProducer.empty)
+  private let objectsSignal: MutableProperty<SignalProducer<[T], NoError>> = MutableProperty(SignalProducer.empty)
 
   public func bindToProducer(producer: SignalProducer<[T], Result.NoError>) {
     objectsSignal.value = producer
@@ -22,14 +21,18 @@ class ChangeObserver<T: Equatable> {
       let rowsToRemove = old.filter {
         return !new.contains($0)
       }.map {
-        return NSIndexPath(index: 0).indexPathByAddingIndex(old.indexOf($0)!)
+        return old.indexOf($0)!
       }
       let rowsToInsert = new.filter {
         return !old.contains($0)
       }.map {
-        return NSIndexPath(index: 0).indexPathByAddingIndex(new.indexOf($0)!)
+        return new.indexOf($0)!
       }
       return (rowsToRemove, rowsToInsert)
     }
   }
+}
+
+func indexPathWithRow(row: Int) -> NSIndexPath {
+  return NSIndexPath(index: 0).indexPathByAddingIndex(row)
 }
