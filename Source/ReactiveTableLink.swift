@@ -32,7 +32,7 @@ public class ReactiveTableLink<Cell where Cell:UITableViewCell, Cell:ReactiveLis
     tableView.delegate = self
     tableView.dataSource = self
     tableView.registerClass(Cell.self, forCellReuseIdentifier: "Cell")
-    self.changeObserver.changeSignal.observeNext{ [unowned self](rowsToRemove, rowsToInsert) in
+    self.changeObserver.changeSignal.startWithNext{ [unowned self](rowsToRemove, rowsToInsert) in
       var onlyOrderChanged = (rowsToRemove.count == 0) && (rowsToInsert.count == 0)
       if self.animateChanges == true && onlyOrderChanged == false {
         tableView.beginUpdates()
@@ -48,6 +48,10 @@ public class ReactiveTableLink<Cell where Cell:UITableViewCell, Cell:ReactiveLis
 
   public func bindToProducer(producer: SignalProducer<[Element], Result.NoError>) {
     changeObserver.bindToProducer(producer)
+  }
+
+  public func bindToSignal(signal: Signal<[Element], Result.NoError>) {
+    changeObserver.bindToProducer(SignalProducer(signal: signal))
   }
 
   public func onPrepareCell(block: PrepareCellBlock) {

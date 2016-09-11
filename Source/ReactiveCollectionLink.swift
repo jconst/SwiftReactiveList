@@ -25,7 +25,7 @@ public class ReactiveCollectionLink<Cell where Cell:UICollectionViewCell, Cell:R
     collectionView.delegate = self
     collectionView.dataSource = self
     collectionView.registerClass(Cell.self, forCellWithReuseIdentifier: "Cell")
-    changeObserver.changeSignal.observeNext{ [unowned self] (rowsToRemove, rowsToInsert) in
+    changeObserver.changeSignal.startWithNext{ [unowned self] (rowsToRemove, rowsToInsert) in
       var onlyOrderChanged = (rowsToRemove.count == 0) && (rowsToInsert.count == 0)
       if self.animateChanges == true && onlyOrderChanged == false {
         collectionView.performBatchUpdates({
@@ -41,6 +41,10 @@ public class ReactiveCollectionLink<Cell where Cell:UICollectionViewCell, Cell:R
 
   public func bindToProducer(producer: SignalProducer<[Element], Result.NoError>) {
     changeObserver.bindToProducer(producer)
+  }
+
+  public func bindToSignal(signal: Signal<[Element], Result.NoError>) {
+    changeObserver.bindToProducer(SignalProducer(signal: signal))
   }
 
   public func onPrepareCell(block: PrepareCellBlock) {

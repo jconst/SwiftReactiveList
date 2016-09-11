@@ -6,7 +6,7 @@ import enum Result.NoError
 typealias NoError = Result.NoError
 
 public class ChangeObserver<T: Equatable> {
-  public let changeSignal: Signal<([Int], [Int]), Result.NoError>
+  public let changeSignal: SignalProducer<([Int], [Int]), Result.NoError>
   public let objects = MutableProperty([T]())
 
   private let objectsSignal: MutableProperty<SignalProducer<[T], NoError>> = MutableProperty(SignalProducer.empty)
@@ -15,22 +15,24 @@ public class ChangeObserver<T: Equatable> {
     objectsSignal.value = producer
   }
 
-  init() {
-    objects <~ objectsSignal.signal.flatten(.Latest)
-    changeSignal = objects.signal.combinePrevious([]).map { old, new in
-      let rowsToRemove = old.filter {
-        return !new.contains($0)
-      }.map {
-        return old.indexOf($0)!
-      }
-      let rowsToInsert = new.filter {
-        return !old.contains($0)
-      }.map {
-        return new.indexOf($0)!
-      }
-      return (rowsToRemove, rowsToInsert)
-    }
+  public init() {
+    objects <~ objectsSignal.producer.flatten(.Latest)
+    changeSignal = objects.producer.combinePrevious([]).map(diffArrays)
   }
+}
+
+public func diffArrays<Elt: Equatable>(old: [Elt], _ new: [Elt]) -> (remove: [Int], insert: [Int]) {
+  let rowsToRemove = old.filter {
+    return !new.contains($0)
+  }.map {
+    return old.indexOf($0)!
+  }
+  let rowsToInsert = new.filter {
+    return !old.contains($0)
+  }.map {
+    return new.indexOf($0)!
+  }
+  return (rowsToRemove, rowsToInsert)
 }
 
 func indexPathWithRow(row: Int) -> NSIndexPath {
