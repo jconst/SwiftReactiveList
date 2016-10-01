@@ -3,11 +3,11 @@
 import ReactiveCocoa
 import enum Result.NoError
 
-public class ReactiveCollectionLink<Cell where Cell:UICollectionViewCell, Cell:ReactiveListCell>
-    : NSObject, UICollectionViewDataSource, UICollectionViewDelegate {
+public class ReactiveCollectionLink<Cell>
+    : NSObject, UICollectionViewDataSource, UICollectionViewDelegate where Cell:UICollectionViewCell, Cell:ReactiveListCell {
 
   public typealias Element = Cell.Item
-  public typealias PrepareCellBlock = ((Cell, NSIndexPath) -> Void)
+  public typealias PrepareCellBlock = ((Cell, IndexPath) -> Void)
 
   public var animateChanges = true
   public let didSelectItem: Signal<(Element, NSIndexPath), Result.NoError>
@@ -24,7 +24,7 @@ public class ReactiveCollectionLink<Cell where Cell:UICollectionViewCell, Cell:R
     super.init()
     collectionView.delegate = self
     collectionView.dataSource = self
-    collectionView.registerClass(Cell.self, forCellWithReuseIdentifier: "Cell")
+    collectionView.register(Cell.self, forCellWithReuseIdentifier: "Cell")
     changeObserver.changeSignal.startWithNext{ [unowned self] (rowsToRemove, rowsToInsert) in
       var onlyOrderChanged = (rowsToRemove.count == 0) && (rowsToInsert.count == 0)
       if self.animateChanges == true && onlyOrderChanged == false {
@@ -39,38 +39,38 @@ public class ReactiveCollectionLink<Cell where Cell:UICollectionViewCell, Cell:R
     }
   }
 
-  public func bindToProducer(producer: SignalProducer<[Element], Result.NoError>) {
+  public func bindToProducer(_ producer: SignalProducer<[Element], Result.NoError>) {
     changeObserver.bindToProducer(producer)
   }
 
-  public func bindToSignal(signal: Signal<[Element], Result.NoError>) {
+  public func bindToSignal(_ signal: Signal<[Element], Result.NoError>) {
     changeObserver.bindToProducer(SignalProducer(signal: signal))
   }
 
-  public func onPrepareCell(block: PrepareCellBlock) {
+  public func onPrepareCell(_ block: @escaping PrepareCellBlock) {
     prepareCell = block
   }
 
-  public func indexPathForObject(object: Element) -> NSIndexPath {
-    return NSIndexPath(forRow: changeObserver.objects.value.indexOf(object)!, inSection: 0)
+  public func indexPathForObject(_ object: Element) -> IndexPath {
+    return IndexPath(forRow: changeObserver.objects.value.indexOf(object)!, inSection: 0)
   }
 
-  public func objectForIndexPath(indexPath: NSIndexPath) -> Element {
+  public func objectForIndexPath(_ indexPath: IndexPath) -> Element {
     return changeObserver.objects.value[indexPath.row]
   }
 
-  public func numberOfSectionsInCollectionView(collectionView: UICollectionView) -> Int {
+  public func numberOfSections(in collectionView: UICollectionView) -> Int {
     return 1
   }
 
-  public func collectionView(collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+  public func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
     return changeObserver.objects.value.count
   }
 
-  public func collectionView(collectionView: UICollectionView, cellForItemAtIndexPath indexPath: NSIndexPath)
+  public func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath)
       -> UICollectionViewCell {
-    var object = objectForIndexPath(indexPath)
-    var cell = collectionView.dequeueReusableCellWithReuseIdentifier("Cell", forIndexPath: indexPath)
+    let object = objectForIndexPath(indexPath)
+    let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "Cell", for: indexPath)
     guard var rxCell = cell as? Cell else {
       fatalError("Dequeued reusable cell that could not be cast to the Cell associated type")
       return cell
@@ -80,13 +80,13 @@ public class ReactiveCollectionLink<Cell where Cell:UICollectionViewCell, Cell:R
     return rxCell
   }
 
-  public func collectionView(collectionView: UICollectionView, didSelectItemAtIndexPath indexPath: NSIndexPath) {
+  public func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
     selectItem.sendNext((objectForIndexPath(indexPath), indexPath))
   }
 
   // MARK: Delegate pass-throughs
-  public func collectionView(collectionView: UICollectionView, moveItemAtIndexPath src: NSIndexPath,
-      toIndexPath dst: NSIndexPath) {
+  public func collectionView(_ collectionView: UICollectionView, moveItemAt src: IndexPath,
+      to dst: IndexPath) {
     moveItem.sendNext((src, dst))
   }
 }

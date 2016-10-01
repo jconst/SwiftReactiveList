@@ -21,20 +21,20 @@ public class ChangeObserver<T: Equatable> {
   }
 }
 
-public func diffArrays<Elt: Equatable>(old: [Elt], _ new: [Elt]) -> (remove: [Int], insert: [Int]) {
+public func diffArrays<Elt: Equatable>(_ old: [Elt], _ new: [Elt]) -> (remove: [Int], insert: [Int]) {
   let rowsToRemove = old.filter {
     return !new.contains($0)
   }.map {
-    return old.indexOf($0)!
+    return old.index(of: $0)!
   }
   let rowsToInsert = new.filter {
     return !old.contains($0)
   }.map {
-    return new.indexOf($0)!
+    return new.index(of: $0)!
   }
   return (rowsToRemove, rowsToInsert)
 }
 
-func indexPathWithRow(row: Int) -> NSIndexPath {
-  return NSIndexPath(index: 0).indexPathByAddingIndex(row)
+func indexPathWithRow(_ row: Int) -> IndexPath {
+  return IndexPath(index: 0).adding(row)
 }

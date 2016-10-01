@@ -3,15 +3,15 @@
 import ReactiveCocoa
 import enum Result.NoError
 
-public class ReactiveTableLink<Cell where Cell:UITableViewCell, Cell:ReactiveListCell>
-    : NSObject, UITableViewDataSource, UITableViewDelegate {
+public class ReactiveTableLink<Cell>
+    : NSObject, UITableViewDataSource, UITableViewDelegate where Cell:UITableViewCell, Cell:ReactiveListCell {
 
   public typealias Element = Cell.Item
-  public typealias PrepareCellBlock = ((Cell, NSIndexPath) -> Void)
+  public typealias PrepareCellBlock = ((Cell, IndexPath) -> Void)
 
   public var animateChanges = true
-  public var insertAnimation: UITableViewRowAnimation = .Automatic
-  public var deleteAnimation: UITableViewRowAnimation = .Automatic
+  public var insertAnimation: UITableViewRowAnimation = .automatic
+  public var deleteAnimation: UITableViewRowAnimation = .automatic
 
   public let didSelectItem: Signal<(Element, NSIndexPath), Result.NoError>
   public let didTapAccessory: Signal<(Element, NSIndexPath), Result.NoError>
@@ -31,7 +31,7 @@ public class ReactiveTableLink<Cell where Cell:UITableViewCell, Cell:ReactiveLis
     super.init()
     tableView.delegate = self
     tableView.dataSource = self
-    tableView.registerClass(Cell.self, forCellReuseIdentifier: "Cell")
+    tableView.register(Cell.self, forCellReuseIdentifier: "Cell")
     self.changeObserver.changeSignal.startWithNext{ [unowned self](rowsToRemove, rowsToInsert) in
       var onlyOrderChanged = (rowsToRemove.count == 0) && (rowsToInsert.count == 0)
       if self.animateChanges == true && onlyOrderChanged == false {
@@ -46,37 +46,37 @@ public class ReactiveTableLink<Cell where Cell:UITableViewCell, Cell:ReactiveLis
     }
   }
 
-  public func bindToProducer(producer: SignalProducer<[Element], Result.NoError>) {
+  public func bindToProducer(_ producer: SignalProducer<[Element], Result.NoError>) {
     changeObserver.bindToProducer(producer)
   }
 
-  public func bindToSignal(signal: Signal<[Element], Result.NoError>) {
+  public func bindToSignal(_ signal: Signal<[Element], Result.NoError>) {
     changeObserver.bindToProducer(SignalProducer(signal: signal))
   }
 
-  public func onPrepareCell(block: PrepareCellBlock) {
+  public func onPrepareCell(_ block: @escaping PrepareCellBlock) {
     prepareCell = block
   }
 
-  public func indexPathForObject(object: Element) -> NSIndexPath {
-    return NSIndexPath(forRow: changeObserver.objects.value.indexOf(object)!, inSection: 0)
+  public func indexPathForObject(_ object: Element) -> IndexPath {
+    return IndexPath(forRow: changeObserver.objects.value.indexOf(object)!, inSection: 0)
   }
 
-  public func objectForIndexPath(indexPath: NSIndexPath) -> Element {
+  public func objectForIndexPath(_ indexPath: IndexPath) -> Element {
     return changeObserver.objects.value[indexPath.row]
   }
 
-  public func numberOfSectionsInTableView(tableView: UITableView) -> Int {
+  public func numberOfSections(in tableView: UITableView) -> Int {
     return 1
   }
 
-  public func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+  public func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
     return changeObserver.objects.value.count
   }
 
-  public func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
-    var object = objectForIndexPath(indexPath)
-    var cell = tableView.dequeueReusableCellWithIdentifier("Cell", forIndexPath: indexPath)
+  public func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+    let object = objectForIndexPath(indexPath)
+    let cell = tableView.dequeueReusableCell(withIdentifier: "Cell", for: indexPath)
     guard var rxCell = cell as? Cell else {
       fatalError("Dequeued reusable cell that could not be cast to the Cell associated type")
       return cell
@@ -86,17 +86,17 @@ public class ReactiveTableLink<Cell where Cell:UITableViewCell, Cell:ReactiveLis
     return rxCell
   }
 
-  public func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
+  public func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
     selectItem.sendNext((objectForIndexPath(indexPath), indexPath))
   }
 
-  public func tableView(tableView: UITableView, accessoryButtonTappedForRowWithIndexPath indexPath: NSIndexPath) {
+  public func tableView(_ tableView: UITableView, accessoryButtonTappedForRowWith indexPath: IndexPath) {
     tapAccessory.sendNext((objectForIndexPath(indexPath), indexPath))
   }
 
-  public func tableView(tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle,
-      forRowAtIndexPath indexPath: NSIndexPath) {
-    if (editingStyle == .Delete) {
+  public func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle,
+      forRowAt indexPath: IndexPath) {
+    if (editingStyle == .delete) {
       deleteItem.sendNext((objectForIndexPath(indexPath), indexPath))
     }
   }
