@@ -69,8 +69,8 @@ public class ReactiveCollectionLink<Cell where Cell:UICollectionViewCell, Cell:R
 
   public func collectionView(collectionView: UICollectionView, cellForItemAtIndexPath indexPath: NSIndexPath)
       -> UICollectionViewCell {
-    var object = objectForIndexPath(indexPath)
-    var cell = collectionView.dequeueReusableCellWithReuseIdentifier("Cell", forIndexPath: indexPath)
+    let object = objectForIndexPath(indexPath)
+    let cell = collectionView.dequeueReusableCellWithReuseIdentifier("Cell", forIndexPath: indexPath)
     guard var rxCell = cell as? Cell else {
       fatalError("Dequeued reusable cell that could not be cast to the Cell associated type")
       return cell

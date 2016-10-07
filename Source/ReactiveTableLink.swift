@@ -75,8 +75,8 @@ public class ReactiveTableLink<Cell where Cell:UITableViewCell, Cell:ReactiveLis
   }
 
   public func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
-    var object = objectForIndexPath(indexPath)
-    var cell = tableView.dequeueReusableCellWithIdentifier("Cell", forIndexPath: indexPath)
+    let object = objectForIndexPath(indexPath)
+    let cell = tableView.dequeueReusableCellWithIdentifier("Cell", forIndexPath: indexPath)
     guard var rxCell = cell as? Cell else {
       fatalError("Dequeued reusable cell that could not be cast to the Cell associated type")
       return cell
