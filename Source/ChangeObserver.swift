@@ -19,6 +19,38 @@ public class ChangeObserver<T: Equatable> {
     objects <~ objectsSignal.producer.flatten(.Latest)
     changeSignal = objects.producer.combinePrevious([]).map(diffArrays)
   }
+
+  public func subscribeCollectionView(collectionView: UICollectionView, cellClass: AnyClass, animate: Bool) {
+    collectionView.registerClass(cellClass, forCellWithReuseIdentifier: "Cell")
+    changeSignal.startWithNext{ [unowned self] (rowsToRemove, rowsToInsert) in
+      let onlyOrderChanged = (rowsToRemove.count == 0) && (rowsToInsert.count == 0)
+      if animate && !onlyOrderChanged {
+        collectionView.performBatchUpdates({
+          collectionView.deleteItemsAtIndexPaths(rowsToRemove.map(indexPathWithRow))
+          collectionView.insertItemsAtIndexPaths(rowsToInsert.map(indexPathWithRow))
+        }, completion: nil)
+      }
+      else {
+        collectionView.reloadData()
+      }
+    }
+  }
+
+  public func subscribeTableView(tableView: UITableView, cellClass: AnyClass, animate: Bool) {
+    tableView.registerClass(cellClass, forCellReuseIdentifier: "Cell")
+    changeSignal.startWithNext{ [unowned self](rowsToRemove, rowsToInsert) in
+      let onlyOrderChanged = (rowsToRemove.count == 0) && (rowsToInsert.count == 0)
+      if animate && !onlyOrderChanged {
+        tableView.beginUpdates()
+        tableView.deleteRowsAtIndexPaths(rowsToRemove.map(indexPathWithRow), withRowAnimation: .Automatic)
+        tableView.insertRowsAtIndexPaths(rowsToInsert.map(indexPathWithRow), withRowAnimation: .Automatic)
+        tableView.endUpdates()
+      }
+      else {
+        tableView.reloadData()
+      }
+    }
+  }
 }
 
 public func diffArrays<Elt: Equatable>(old: [Elt], _ new: [Elt]) -> (remove: [Int], insert: [Int]) {
