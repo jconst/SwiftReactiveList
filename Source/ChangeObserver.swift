@@ -22,15 +22,17 @@ public class ChangeObserver<T: Equatable> {
 
   public func subscribeCollectionView(collectionView: UICollectionView, cellClass: AnyClass, animate: Bool) {
     collectionView.registerClass(cellClass, forCellWithReuseIdentifier: "Cell")
-    changeSignal.startWithNext{ [unowned self] (rowsToRemove, rowsToInsert) in
+    changeSignal.take(2).startWithNext{ [unowned self] (_, _) in
+      collectionView.reloadData()
+    }
+    changeSignal.skip(2).startWithNext{ [unowned self] (rowsToRemove, rowsToInsert) in
       let onlyOrderChanged = (rowsToRemove.count == 0) && (rowsToInsert.count == 0)
       if animate && !onlyOrderChanged {
         collectionView.performBatchUpdates({
           collectionView.deleteItemsAtIndexPaths(rowsToRemove.map(indexPathWithRow))
           collectionView.insertItemsAtIndexPaths(rowsToInsert.map(indexPathWithRow))
         }, completion: nil)
-      }
-      else {
+      } else {
         collectionView.reloadData()
       }
     }
