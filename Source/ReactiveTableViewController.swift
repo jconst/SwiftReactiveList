@@ -11,8 +11,8 @@ public class ReactiveTableViewController<Cell where Cell:UITableViewCell, Cell:R
   public let didSelectItem: Signal<(Element, NSIndexPath), Result.NoError>
   public let didTapAccessory: Signal<(Element, NSIndexPath), Result.NoError>
   public let didDeleteItem: Signal<(Element, NSIndexPath), Result.NoError>
+  public let changeObserver = ChangeObserver<Element>()
 
-  private let changeObserver = ChangeObserver<Element>()
   private let selectItem: Observer<(Element, NSIndexPath), Result.NoError>
   private let tapAccessory: Observer<(Element, NSIndexPath), Result.NoError>
   private let deleteItem: Observer<(Element, NSIndexPath), Result.NoError>

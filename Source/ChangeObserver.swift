@@ -22,20 +22,20 @@ public class ChangeObserver<T: Equatable> {
 
   public func subscribeCollectionView(collectionView: UICollectionView, cellClass: AnyClass, animate: Bool) {
     collectionView.registerClass(cellClass, forCellWithReuseIdentifier: "Cell")
-    changeSignal.take(2).startWithNext{ [unowned self] (_, _) in
+    changeSignal.startWithNext{ [unowned self] (_, _) in
       collectionView.reloadData()
     }
-    changeSignal.skip(2).startWithNext{ [unowned self] (rowsToRemove, rowsToInsert) in
-      let onlyOrderChanged = (rowsToRemove.count == 0) && (rowsToInsert.count == 0)
-      if animate && !onlyOrderChanged {
-        collectionView.performBatchUpdates({
-          collectionView.deleteItemsAtIndexPaths(rowsToRemove.map(indexPathWithRow))
-          collectionView.insertItemsAtIndexPaths(rowsToInsert.map(indexPathWithRow))
-        }, completion: nil)
-      } else {
-        collectionView.reloadData()
-      }
-    }
+//    changeSignal.skip(2).startWithNext{ [unowned self] (rowsToRemove, rowsToInsert) in
+//      let onlyOrderChanged = (rowsToRemove.count == 0) && (rowsToInsert.count == 0)
+//      if animate && !onlyOrderChanged {
+//        collectionView.performBatchUpdates({
+//          collectionView.deleteItemsAtIndexPaths(rowsToRemove.map(indexPathWithRow))
+//          collectionView.insertItemsAtIndexPaths(rowsToInsert.map(indexPathWithRow))
+//        }, completion: nil)
+//      } else {
+//        collectionView.reloadData()
+//      }
+//    }
   }
 
   public func subscribeTableView(tableView: UITableView, cellClass: AnyClass, animate: Bool) {

@@ -10,8 +10,8 @@ public class ReactiveCollectionViewController<Cell where Cell:UICollectionViewCe
 
   public let didSelectItem: Signal<(Element, NSIndexPath), Result.NoError>
   public let didMoveItem: Signal<(NSIndexPath, NSIndexPath), Result.NoError>
+  public let changeObserver = ChangeObserver<Element>()
 
-  private let changeObserver = ChangeObserver<Element>()
   private let selectItem: Observer<(Element, NSIndexPath), Result.NoError>
   private let moveItem: Observer<(NSIndexPath, NSIndexPath), Result.NoError>
 
