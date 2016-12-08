@@ -3,8 +3,8 @@
 import ReactiveCocoa
 import enum Result.NoError
 
-public class ReactiveCollectionViewController<Cell where Cell:UICollectionViewCell, Cell:ReactiveListCell>
-    : UICollectionViewController {
+open class ReactiveCollectionViewController<Cell>
+    : UICollectionViewController where Cell:UICollectionViewCell, Cell:ReactiveListCell {
 
   public typealias Element = Cell.Item
 
@@ -22,34 +22,38 @@ public class ReactiveCollectionViewController<Cell where Cell:UICollectionViewCe
     changeObserver.subscribeCollectionView(collectionView!, cellClass: Cell.self, animate: animateChanges)
   }
 
-  public func bindToProducer(producer: SignalProducer<[Element], Result.NoError>) {
+  required public init?(coder aDecoder: NSCoder) {
+      fatalError("init(coder:) has not been implemented")
+  }
+
+  public func bindToProducer(_ producer: SignalProducer<[Element], Result.NoError>) {
     changeObserver.bindToProducer(producer)
   }
 
-  public func bindToSignal(signal: Signal<[Element], Result.NoError>) {
+  public func bindToSignal(_ signal: Signal<[Element], Result.NoError>) {
     changeObserver.bindToProducer(SignalProducer(signal: signal))
   }
 
-  public func indexPathForObject(object: Element) -> NSIndexPath {
-    return NSIndexPath(forRow: changeObserver.objects.value.indexOf(object)!, inSection: 0)
+  public func indexPathForObject(_ object: Element) -> IndexPath {
+    return IndexPath(forRow: changeObserver.objects.value.indexOf(object)!, inSection: 0)
   }
 
-  public func objectForIndexPath(indexPath: NSIndexPath) -> Element {
+  public func objectForIndexPath(_ indexPath: IndexPath) -> Element {
     return changeObserver.objects.value[indexPath.row]
   }
 
-  public override func numberOfSectionsInCollectionView(collectionView: UICollectionView) -> Int {
+  open override func numberOfSections(in collectionView: UICollectionView) -> Int {
     return 1
   }
 
-  public override func collectionView(collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+  open override func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
     return changeObserver.objects.value.count
   }
 
-  public override func collectionView(collectionView: UICollectionView, cellForItemAtIndexPath indexPath: NSIndexPath)
+  open override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath)
       -> UICollectionViewCell {
     let object = objectForIndexPath(indexPath)
-    let cell = collectionView.dequeueReusableCellWithReuseIdentifier("Cell", forIndexPath: indexPath)
+    let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "Cell", for: indexPath)
     guard var rxCell = cell as? Cell else {
       fatalError("Dequeued reusable cell that could not be cast to the Cell associated type")
       return cell
@@ -59,16 +63,16 @@ public class ReactiveCollectionViewController<Cell where Cell:UICollectionViewCe
     return rxCell
   }
 
-  public func prepareCell(cell: Cell, indexPath: NSIndexPath) {
+  open func prepareCell(_ cell: Cell, indexPath: IndexPath) {
     // can be overridden by subclasses
   }
 
-  public override func collectionView(collectionView: UICollectionView, didSelectItemAtIndexPath indexPath: NSIndexPath) {
+  open override func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
     selectItem.sendNext((objectForIndexPath(indexPath), indexPath))
   }
 
-  public override func collectionView(collectionView: UICollectionView, moveItemAtIndexPath src: NSIndexPath,
-      toIndexPath dst: NSIndexPath) {
+  open override func collectionView(_ collectionView: UICollectionView, moveItemAt src: IndexPath,
+      to dst: IndexPath) {
     moveItem.sendNext((src, dst))
   }
 }

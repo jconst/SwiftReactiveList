@@ -3,8 +3,8 @@
 import ReactiveCocoa
 import enum Result.NoError
 
-public class ReactiveTableViewController<Cell where Cell:UITableViewCell, Cell:ReactiveListCell>
-    : UITableViewController {
+open class ReactiveTableViewController<Cell>
+    : UITableViewController where Cell:UITableViewCell, Cell:ReactiveListCell {
 
   public typealias Element = Cell.Item
 
@@ -22,38 +22,42 @@ public class ReactiveTableViewController<Cell where Cell:UITableViewCell, Cell:R
     (didSelectItem, selectItem) = Signal.pipe()
     (didTapAccessory, tapAccessory) = Signal.pipe()
     (didDeleteItem, deleteItem) = Signal.pipe()
-    super.init(style: .Plain)
+    super.init(style: .plain)
     changeObserver.subscribeTableView(tableView, cellClass: Cell.self, animate: animateChanges)
   }
 
-  public func bindToProducer(producer: SignalProducer<[Element], Result.NoError>) {
+  required public init?(coder aDecoder: NSCoder) {
+      fatalError("init(coder:) has not been implemented")
+  }
+
+  public func bindToProducer(_ producer: SignalProducer<[Element], Result.NoError>) {
     changeObserver.bindToProducer(producer)
   }
 
-  public func bindToSignal(signal: Signal<[Element], Result.NoError>) {
+  public func bindToSignal(_ signal: Signal<[Element], Result.NoError>) {
     changeObserver.bindToProducer(SignalProducer(signal: signal))
   }
 
-  public func indexPathForObject(object: Element) -> NSIndexPath {
-    return NSIndexPath(forRow: changeObserver.objects.value.indexOf(object)!, inSection: 0)
+  public func indexPathForObject(_ object: Element) -> IndexPath {
+    return IndexPath(forRow: changeObserver.objects.value.indexOf(object)!, inSection: 0)
   }
 
-  public func objectForIndexPath(indexPath: NSIndexPath) -> Element {
+  public func objectForIndexPath(_ indexPath: IndexPath) -> Element {
     return changeObserver.objects.value[indexPath.row]
   }
 
-  public override func numberOfSectionsInTableView(tableView: UITableView) -> Int {
+  open override func numberOfSections(in tableView: UITableView) -> Int {
     return 1
   }
 
-  public override func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+  open override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
     return changeObserver.objects.value.count
   }
 
-  public override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath)
+  open override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath)
       -> UITableViewCell {
     let object = objectForIndexPath(indexPath)
-    let cell = tableView.dequeueReusableCellWithIdentifier("Cell", forIndexPath: indexPath)
+    let cell = tableView.dequeueReusableCell(withIdentifier: "Cell", for: indexPath)
     guard var rxCell = cell as? Cell else {
       fatalError("Dequeued reusable cell that could not be cast to the Cell associated type")
       return cell
@@ -63,21 +67,21 @@ public class ReactiveTableViewController<Cell where Cell:UITableViewCell, Cell:R
     return rxCell
   }
 
-  public func prepareCell(cell: Cell, indexPath: NSIndexPath) {
+  open func prepareCell(_ cell: Cell, indexPath: IndexPath) {
     // can be overridden by subclasses
   }
 
-  public override func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
+  open override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
     selectItem.sendNext((objectForIndexPath(indexPath), indexPath))
   }
 
-  public override func tableView(tableView: UITableView, accessoryButtonTappedForRowWithIndexPath indexPath: NSIndexPath) {
+  open override func tableView(_ tableView: UITableView, accessoryButtonTappedForRowWith indexPath: IndexPath) {
     tapAccessory.sendNext((objectForIndexPath(indexPath), indexPath))
   }
 
-  public override func tableView(tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle,
-      forRowAtIndexPath indexPath: NSIndexPath) {
-    if (editingStyle == .Delete) {
+  open override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle,
+      forRowAt indexPath: IndexPath) {
+    if (editingStyle == .delete) {
       deleteItem.sendNext((objectForIndexPath(indexPath), indexPath))
     }
   }
