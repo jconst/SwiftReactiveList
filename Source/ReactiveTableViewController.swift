@@ -1,6 +1,6 @@
 //  Created by Joseph Constantakis on 6/28/16.
 
-import ReactiveCocoa
+import ReactiveSwift
 import enum Result.NoError
 
 open class ReactiveTableViewController<Cell>
@@ -8,14 +8,14 @@ open class ReactiveTableViewController<Cell>
 
   public typealias Element = Cell.Item
 
-  public let didSelectItem: Signal<(Element, NSIndexPath), Result.NoError>
-  public let didTapAccessory: Signal<(Element, NSIndexPath), Result.NoError>
-  public let didDeleteItem: Signal<(Element, NSIndexPath), Result.NoError>
+  public let didSelectItem: Signal<(Element, IndexPath), Result.NoError>
+  public let didTapAccessory: Signal<(Element, IndexPath), Result.NoError>
+  public let didDeleteItem: Signal<(Element, IndexPath), Result.NoError>
   public let changeObserver = ChangeObserver<Element>()
 
-  private let selectItem: Observer<(Element, NSIndexPath), Result.NoError>
-  private let tapAccessory: Observer<(Element, NSIndexPath), Result.NoError>
-  private let deleteItem: Observer<(Element, NSIndexPath), Result.NoError>
+  private let selectItem: Observer<(Element, IndexPath), Result.NoError>
+  private let tapAccessory: Observer<(Element, IndexPath), Result.NoError>
+  private let deleteItem: Observer<(Element, IndexPath), Result.NoError>
 
   // Don't use this, use one of the above convenience inits
   public init(animateChanges: Bool) {
@@ -31,15 +31,15 @@ open class ReactiveTableViewController<Cell>
   }
 
   public func bindToProducer(_ producer: SignalProducer<[Element], Result.NoError>) {
-    changeObserver.bindToProducer(producer)
+    changeObserver.bind(to: producer)
   }
 
   public func bindToSignal(_ signal: Signal<[Element], Result.NoError>) {
-    changeObserver.bindToProducer(SignalProducer(signal: signal))
+    changeObserver.bind(to: SignalProducer(signal: signal))
   }
 
   public func indexPathForObject(_ object: Element) -> IndexPath {
-    return IndexPath(forRow: changeObserver.objects.value.indexOf(object)!, inSection: 0)
+    return IndexPath(row: changeObserver.objects.value.index(of: object)!, section: 0)
   }
 
   public func objectForIndexPath(_ indexPath: IndexPath) -> Element {
@@ -72,17 +72,17 @@ open class ReactiveTableViewController<Cell>
   }
 
   open override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-    selectItem.sendNext((objectForIndexPath(indexPath), indexPath))
+    selectItem.send(value: (objectForIndexPath(indexPath), indexPath))
   }
 
   open override func tableView(_ tableView: UITableView, accessoryButtonTappedForRowWith indexPath: IndexPath) {
-    tapAccessory.sendNext((objectForIndexPath(indexPath), indexPath))
+    tapAccessory.send(value: (objectForIndexPath(indexPath), indexPath))
   }
 
   open override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle,
       forRowAt indexPath: IndexPath) {
     if (editingStyle == .delete) {
-      deleteItem.sendNext((objectForIndexPath(indexPath), indexPath))
+      deleteItem.send(value: (objectForIndexPath(indexPath), indexPath))
     }
   }
 }

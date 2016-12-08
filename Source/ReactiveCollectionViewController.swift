@@ -1,6 +1,6 @@
 //  Created by Joseph Constantakis on 6/27/16.
 
-import ReactiveCocoa
+import ReactiveSwift
 import enum Result.NoError
 
 open class ReactiveCollectionViewController<Cell>
@@ -8,12 +8,12 @@ open class ReactiveCollectionViewController<Cell>
 
   public typealias Element = Cell.Item
 
-  public let didSelectItem: Signal<(Element, NSIndexPath), Result.NoError>
-  public let didMoveItem: Signal<(NSIndexPath, NSIndexPath), Result.NoError>
+  public let didSelectItem: Signal<(Element, IndexPath), Result.NoError>
+  public let didMoveItem: Signal<(IndexPath, IndexPath), Result.NoError>
   public let changeObserver = ChangeObserver<Element>()
 
-  private let selectItem: Observer<(Element, NSIndexPath), Result.NoError>
-  private let moveItem: Observer<(NSIndexPath, NSIndexPath), Result.NoError>
+  private let selectItem: Observer<(Element, IndexPath), Result.NoError>
+  private let moveItem: Observer<(IndexPath, IndexPath), Result.NoError>
 
   public init(collectionViewLayout layout: UICollectionViewLayout, animateChanges: Bool) {
     (didSelectItem, selectItem) = Signal.pipe()
@@ -27,15 +27,15 @@ open class ReactiveCollectionViewController<Cell>
   }
 
   public func bindToProducer(_ producer: SignalProducer<[Element], Result.NoError>) {
-    changeObserver.bindToProducer(producer)
+    changeObserver.bind(to: producer)
   }
 
   public func bindToSignal(_ signal: Signal<[Element], Result.NoError>) {
-    changeObserver.bindToProducer(SignalProducer(signal: signal))
+    changeObserver.bind(to: SignalProducer(signal: signal))
   }
 
   public func indexPathForObject(_ object: Element) -> IndexPath {
-    return IndexPath(forRow: changeObserver.objects.value.indexOf(object)!, inSection: 0)
+    return IndexPath(row: changeObserver.objects.value.index(of: object)!, section: 0)
   }
 
   public func objectForIndexPath(_ indexPath: IndexPath) -> Element {
@@ -68,11 +68,11 @@ open class ReactiveCollectionViewController<Cell>
   }
 
   open override func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-    selectItem.sendNext((objectForIndexPath(indexPath), indexPath))
+    selectItem.send(value: (objectForIndexPath(indexPath), indexPath))
   }
 
   open override func collectionView(_ collectionView: UICollectionView, moveItemAt src: IndexPath,
       to dst: IndexPath) {
-    moveItem.sendNext((src, dst))
+    moveItem.send(value: (src, dst))
   }
 }

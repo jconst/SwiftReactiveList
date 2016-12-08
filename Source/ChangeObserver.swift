@@ -11,18 +11,18 @@ public class ChangeObserver<T: Equatable> {
 
   private let objectsSignal: MutableProperty<SignalProducer<[T], NoError>> = MutableProperty(SignalProducer.empty)
 
-  public func bindToProducer(producer: SignalProducer<[T], Result.NoError>) {
+  public func bind(to producer: SignalProducer<[T], Result.NoError>) {
     objectsSignal.value = producer
   }
 
   public init() {
-    objects <~ objectsSignal.producer.flatten(.Latest)
+    objects <~ objectsSignal.producer.flatten(.latest)
     changeSignal = objects.producer.combinePrevious([]).map(diffArrays)
   }
 
   public func subscribeCollectionView(_ collectionView: UICollectionView, cellClass: AnyClass, animate: Bool) {
     collectionView.register(cellClass, forCellWithReuseIdentifier: "Cell")
-    changeSignal.startWithNext{ [unowned self] (_, _) in
+    changeSignal.startWithValues{ [unowned self] (_, _) in
       collectionView.reloadData()
     }
 //    changeSignal.skip(2).startWithNext{ [unowned self] (rowsToRemove, rowsToInsert) in
@@ -40,12 +40,12 @@ public class ChangeObserver<T: Equatable> {
 
   public func subscribeTableView(_ tableView: UITableView, cellClass: AnyClass, animate: Bool) {
     tableView.register(cellClass, forCellReuseIdentifier: "Cell")
-    changeSignal.startWithNext{ [unowned self](rowsToRemove, rowsToInsert) in
+    changeSignal.startWithValues{ [unowned self](rowsToRemove, rowsToInsert) in
       let onlyOrderChanged = (rowsToRemove.count == 0) && (rowsToInsert.count == 0)
       if animate && !onlyOrderChanged {
         tableView.beginUpdates()
-        tableView.deleteRowsAtIndexPaths(rowsToRemove.map(indexPathWithRow), withRowAnimation: .Automatic)
-        tableView.insertRowsAtIndexPaths(rowsToInsert.map(indexPathWithRow), withRowAnimation: .Automatic)
+        tableView.deleteRows(at: rowsToRemove.map(indexPath), with: .automatic)
+        tableView.insertRows(at: rowsToInsert.map(indexPath), with: .automatic)
         tableView.endUpdates()
       }
       else {
@@ -69,6 +69,6 @@ public func diffArrays<Elt: Equatable>(_ old: [Elt], _ new: [Elt]) -> (remove: [
   return (rowsToRemove, rowsToInsert)
 }
 
-func indexPathWithRow(_ row: Int) -> IndexPath {
-  return IndexPath(index: 0).adding(row)
+func indexPath(row: Int) -> IndexPath {
+  return IndexPath(row: row, section: 0)
 }
