@@ -31,7 +31,7 @@ open class ReactiveCollectionViewController<Cell>
   }
 
   public func bindToSignal(_ signal: Signal<[Element], Result.NoError>) {
-    changeObserver.bind(to: SignalProducer(signal: signal))
+    changeObserver.bind(to: SignalProducer(signal))
   }
 
   public func indexPathForObject(_ object: Element) -> IndexPath {
