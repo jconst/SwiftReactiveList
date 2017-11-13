@@ -12,8 +12,8 @@ open class ReactiveCollectionViewController<Cell>
   public let didMoveItem: Signal<(IndexPath, IndexPath), Result.NoError>
   public let changeObserver = ChangeObserver<Element>()
 
-  private let selectItem: Observer<(Element, IndexPath), Result.NoError>
-  private let moveItem: Observer<(IndexPath, IndexPath), Result.NoError>
+  private let selectItem: Signal<(Element, IndexPath), Result.NoError>.Observer
+  private let moveItem: Signal<(IndexPath, IndexPath), Result.NoError>.Observer
 
   public init(collectionViewLayout layout: UICollectionViewLayout, animateChanges: Bool) {
     (didSelectItem, selectItem) = Signal.pipe()

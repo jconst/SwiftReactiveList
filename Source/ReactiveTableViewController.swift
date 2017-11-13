@@ -13,9 +13,9 @@ open class ReactiveTableViewController<Cell>
   public let didDeleteItem: Signal<(Element, IndexPath), Result.NoError>
   public let changeObserver = ChangeObserver<Element>()
 
-  private let selectItem: Observer<(Element, IndexPath), Result.NoError>
-  private let tapAccessory: Observer<(Element, IndexPath), Result.NoError>
-  private let deleteItem: Observer<(Element, IndexPath), Result.NoError>
+  private let selectItem: Signal<(Element, IndexPath), Result.NoError>.Observer
+  private let tapAccessory: Signal<(Element, IndexPath), Result.NoError>.Observer
+  private let deleteItem: Signal<(Element, IndexPath), Result.NoError>.Observer
 
   // Don't use this, use one of the above convenience inits
   public init(animateChanges: Bool) {
