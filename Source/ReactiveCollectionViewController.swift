@@ -55,7 +55,7 @@ open class ReactiveCollectionViewController<Cell>
     let object = objectForIndexPath(indexPath)
     let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "Cell", for: indexPath)
     guard var rxCell = cell as? Cell else {
-      fatalError("Dequeued reusable cell that could not be cast to the Cell associated type")
+      assertionFailure("Dequeued reusable cell that could not be cast to the Cell associated type")
       return cell
     }
     rxCell.object = object
