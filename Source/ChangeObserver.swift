@@ -22,7 +22,7 @@ public class ChangeObserver<T: Equatable> {
 
   public func subscribeCollectionView(_ collectionView: UICollectionView, cellClass: AnyClass, animate: Bool) {
     collectionView.register(cellClass, forCellWithReuseIdentifier: "Cell")
-    changeSignal.startWithValues{ [unowned self] (_, _) in
+    changeSignal.observe(on: UIScheduler()).startWithValues{ _ in
       collectionView.reloadData()
     }
 //    changeSignal.skip(2).startWithNext{ [unowned self] (rowsToRemove, rowsToInsert) in
@@ -40,7 +40,7 @@ public class ChangeObserver<T: Equatable> {
 
   public func subscribeTableView(_ tableView: UITableView, cellClass: AnyClass, animate: Bool) {
     tableView.register(cellClass, forCellReuseIdentifier: "Cell")
-    changeSignal.startWithValues{ [unowned self](rowsToRemove, rowsToInsert) in
+    changeSignal.observe(on: UIScheduler()).startWithValues{ (rowsToRemove, rowsToInsert) in
       let onlyOrderChanged = (rowsToRemove.count == 0) && (rowsToInsert.count == 0)
       if animate && !onlyOrderChanged {
         tableView.beginUpdates()
